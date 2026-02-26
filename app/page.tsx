@@ -12,6 +12,7 @@ import AmountChart from "@/components/charts/AmountChart";
 import TransactionTable from "@/components/table/TransactionTable";
 import TransactionDetail from "@/components/ui/TransactionDetail";
 import StatsBar from "@/components/ui/StatsBar";
+import InsightsPanel from "@/components/ui/InsightsPanel";
 
 const defaultFilters: Filters = {
   countries: [],
@@ -155,6 +156,8 @@ export default function Dashboard() {
             <AmountChart data={filtered} />
           </div>
         </div>
+
+        <InsightsPanel data={filtered} />
 
         <TransactionTable data={filtered} onSelect={setSelected} />
       </main>
