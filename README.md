@@ -38,13 +38,15 @@ Or push to GitHub and import at [vercel.com/new](https://vercel.com/new).
 
 ## Features
 
-- **Multi-dimensional filtering**: Country, payment method, status, amount range, date range
+- **Multi-dimensional filtering**: Country, payment method, status, amount range, date range, text search, high-risk toggle
 - **4 interactive charts**: Time series, country distribution, payment method, amount histogram
-- **Chart-click filtering**: Click a chart segment to filter the entire dashboard
-- **Sortable transaction table** with pagination
-- **Slide-out detail panel** with fraud indicators (IP mismatch highlighting)
+- **Chart-click filtering**: Click any chart segment to filter the entire dashboard instantly
+- **Suspicious Patterns Panel**: Auto-detects chargeback clusters, IP mismatches, email velocity, high-amount outliers
+- **Risk scoring**: Each transaction gets a 0–100 risk score based on fraud indicators
+- **Sortable transaction table** with pagination, risk indicators, and CSV export
+- **Slide-out detail panel** with full transaction info, IP mismatch alerts, and related transactions
 - **Summary stats bar** showing chargebacks, rates, and IP mismatches
 
 ## Embedded Fraud Pattern
 
-50 high-value chargebacks ($400–$900) from Brazil via credit card, all in a 2-hour window (Feb 24, 02:00–04:00 UTC), targeting electronics. IP addresses originate from Nigeria, Russia, and China — a clear billing/IP country mismatch. These are visually obvious as a spike in the time series chart and flagged with red highlighting in the table.
+50 high-value chargebacks ($400–$780) from Brazil via Visa, all in a 2-hour window (Feb 24, 02:00–04:00 UTC), targeting Electronics. IP addresses originate from Nigeria, Russia, and China — a clear billing/IP country mismatch. Transactions use clustered card numbers (70xx range) and repeat from 5 suspicious email addresses. This pattern is discoverable within 2-3 minutes by observing the time series spike, filtering by chargebacks, or using the High Risk toggle.

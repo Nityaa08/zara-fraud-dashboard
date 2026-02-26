@@ -73,6 +73,7 @@ function detectInsights(data: Transaction[]): Insight[] {
   }
 
   // 4. High amount outliers
+  if (data.length === 0) return insights;
   const amounts = data.map((t) => t.amount);
   const avg = amounts.reduce((s, a) => s + a, 0) / amounts.length;
   const highAmountTxns = data.filter((t) => t.amount > avg * 3);

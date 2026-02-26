@@ -3,7 +3,7 @@
 import { Transaction } from "@/lib/types";
 import { formatCurrency, formatDate, exportToCSV } from "@/lib/utils";
 import Badge from "@/components/ui/Badge";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface Props {
   data: Transaction[];
@@ -29,6 +29,9 @@ export default function TransactionTable({ data, onSelect }: Props) {
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [page, setPage] = useState(0);
   const pageSize = 20;
+
+  // Reset page when data changes (filter applied)
+  useEffect(() => { setPage(0); }, [data]);
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {

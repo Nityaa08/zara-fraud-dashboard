@@ -25,7 +25,3 @@ export interface Filters {
   highRiskOnly: boolean;
 }
 
-export type ChartClickFilter = {
-  key: string;
-  value: string;
-} | null;

@@ -91,6 +91,26 @@ export default function Dashboard() {
     }));
   };
 
+  // Click on time series bar → filter to that date
+  const handleTimeClick = (hourLabel: string) => {
+    // hourLabel format: "MMM dd HH:00", e.g. "Feb 24 02:00"
+    // Parse and set dateRange to that day
+    const parts = hourLabel.match(/(\w+) (\d+) (\d+):00/);
+    if (!parts) return;
+    const monthMap: Record<string, string> = {
+      Jan: "01", Feb: "02", Mar: "03", Apr: "04", May: "05", Jun: "06",
+      Jul: "07", Aug: "08", Sep: "09", Oct: "10", Nov: "11", Dec: "12",
+    };
+    const month = monthMap[parts[1]] || "01";
+    const day = parts[2].padStart(2, "0");
+    const hour = parts[3].padStart(2, "0");
+    const dateStr = `2026-${month}-${day}`;
+    setFilters((f) => ({
+      ...f,
+      dateRange: [`${dateStr}T${hour}:00:00.000Z`, `${dateStr}T${hour}:59:59.999Z`],
+    }));
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -150,7 +170,7 @@ export default function Dashboard() {
           </div>
 
           <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <TimeSeriesChart data={filtered} />
+            <TimeSeriesChart data={filtered} onClickTime={handleTimeClick} />
             <CountryChart data={filtered} onClickCountry={handleCountryClick} />
             <PaymentMethodChart data={filtered} onClickMethod={handleMethodClick} />
             <AmountChart data={filtered} />
