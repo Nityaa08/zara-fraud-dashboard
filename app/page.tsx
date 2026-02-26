@@ -1,101 +1,170 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+import { useState, useEffect, useMemo } from "react";
+import { Transaction, Filters } from "@/lib/types";
+import { loadTransactions, getUniqueValues, getAmountRange, getDateRange } from "@/lib/data";
+import { applyFilters, computeRiskScore } from "@/lib/utils";
+import FilterPanel from "@/components/filters/FilterPanel";
+import TimeSeriesChart from "@/components/charts/TimeSeriesChart";
+import CountryChart from "@/components/charts/CountryChart";
+import PaymentMethodChart from "@/components/charts/PaymentMethodChart";
+import AmountChart from "@/components/charts/AmountChart";
+import TransactionTable from "@/components/table/TransactionTable";
+import TransactionDetail from "@/components/ui/TransactionDetail";
+import StatsBar from "@/components/ui/StatsBar";
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+const defaultFilters: Filters = {
+  countries: [],
+  paymentMethods: [],
+  statuses: [],
+  amountRange: [0, 1000],
+  dateRange: ["", ""],
+  searchQuery: "",
+  highRiskOnly: false,
+};
+
+export default function Dashboard() {
+  const [allData, setAllData] = useState<Transaction[]>([]);
+  const [filters, setFilters] = useState<Filters>(defaultFilters);
+  const [selected, setSelected] = useState<Transaction | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [amountBounds, setAmountBounds] = useState<[number, number]>([0, 1000]);
+  const [dateBounds, setDateBounds] = useState<[string, string]>(["", ""]);
+  const [countries, setCountries] = useState<string[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
+  const [statuses, setStatuses] = useState<string[]>([]);
+
+  useEffect(() => {
+    loadTransactions()
+      .then((data) => {
+        // Compute risk scores
+        const enriched = data.map((t) => ({ ...t, riskScore: computeRiskScore(t) }));
+        setAllData(enriched);
+        const ab = getAmountRange(enriched);
+        const db = getDateRange(enriched);
+        setAmountBounds(ab);
+        setDateBounds(db);
+        setCountries(getUniqueValues(enriched, "country"));
+        setPaymentMethods(getUniqueValues(enriched, "paymentMethod"));
+        setStatuses(getUniqueValues(enriched, "status"));
+        setFilters({
+          ...defaultFilters,
+          amountRange: ab,
+          dateRange: db,
+        });
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError("Failed to load transactions. Please refresh.");
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
+
+  const filtered = useMemo(() => applyFilters(allData, filters), [allData, filters]);
+
+  const resetFilters = () =>
+    setFilters({
+      ...defaultFilters,
+      amountRange: amountBounds,
+      dateRange: dateBounds,
+    });
+
+  const handleCountryClick = (country: string) => {
+    setFilters((f) => ({
+      ...f,
+      countries: f.countries.includes(country)
+        ? f.countries.filter((c) => c !== country)
+        : [...f.countries, country],
+    }));
+  };
+
+  const handleMethodClick = (method: string) => {
+    setFilters((f) => ({
+      ...f,
+      paymentMethods: f.paymentMethods.includes(method)
+        ? f.paymentMethods.filter((m) => m !== method)
+        : [...f.paymentMethods, method],
+    }));
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-gray-500 text-sm">Loading transactions...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-sm text-center">
+          <p className="text-sm text-red-800 font-medium">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-40">
+        <div className="max-w-[1400px] mx-auto flex items-center justify-between">
+          <div>
+            <h1 className="text-lg font-bold text-gray-900">
+              Transaction Pattern Explorer
+            </h1>
+            <p className="text-xs text-gray-500">
+              Zara eShop &mdash; Fraud Risk Analytics Dashboard
+            </p>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-xs text-gray-400">
+              {filtered.length} of {allData.length} transactions
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-[1400px] mx-auto px-6 py-5 space-y-5">
+        <StatsBar data={filtered} />
+
+        <div className="flex gap-5">
+          <div className="w-64 shrink-0">
+            <FilterPanel
+              filters={filters}
+              onChange={setFilters}
+              countries={countries}
+              paymentMethods={paymentMethods}
+              statuses={statuses}
+              amountBounds={amountBounds}
+              dateBounds={dateBounds}
+              onReset={resetFilters}
+            />
+          </div>
+
+          <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <TimeSeriesChart data={filtered} />
+            <CountryChart data={filtered} onClickCountry={handleCountryClick} />
+            <PaymentMethodChart data={filtered} onClickMethod={handleMethodClick} />
+            <AmountChart data={filtered} />
+          </div>
+        </div>
+
+        <TransactionTable data={filtered} onSelect={setSelected} />
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+      <TransactionDetail
+        transaction={selected}
+        onClose={() => setSelected(null)}
+        allTransactions={allData}
+        onSelectRelated={setSelected}
+      />
     </div>
   );
 }
