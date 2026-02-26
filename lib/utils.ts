@@ -6,8 +6,8 @@ export function computeRiskScore(t: Transaction): number {
   if (t.ipCountry !== t.country) score += 40;
   if (t.status === "chargeback") score += 25;
   if (t.amount > 400) score += 15;
-  if (t.paymentMethod === "credit_card") score += 5;
-  if (t.productCategory === "electronics") score += 5;
+  if (t.paymentMethod === "Visa" || t.paymentMethod === "Mastercard") score += 5;
+  if (t.productCategory === "Electronics") score += 5;
   if (t.customerEmail.includes("proton.me")) score += 10;
   return Math.min(score, 100);
 }

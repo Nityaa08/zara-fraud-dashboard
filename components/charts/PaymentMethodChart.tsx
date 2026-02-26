@@ -13,7 +13,7 @@ import {
 } from "recharts";
 import { groupBy } from "@/lib/utils";
 
-const COLORS = ["#6366f1", "#ec4899", "#14b8a6", "#f97316"];
+const COLORS = ["#6366f1", "#ec4899", "#14b8a6", "#f97316", "#8b5cf6", "#06b6d4"];
 
 interface Props {
   data: Transaction[];
@@ -24,7 +24,7 @@ export default function PaymentMethodChart({ data, onClickMethod }: Props) {
   const byMethod = groupBy(data, (t) => t.paymentMethod);
   const chartData = Object.entries(byMethod)
     .map(([name, txns]) => ({
-      name: name.replace(/_/g, " "),
+      name,
       raw: name,
       count: txns.length,
       chargebacks: txns.filter((t) => t.status === "chargeback").length,
