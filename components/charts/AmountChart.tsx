@@ -17,14 +17,13 @@ interface Props {
 }
 
 export default function AmountChart({ data }: Props) {
-  // Create histogram buckets
   const buckets = [
-    { label: "$0-50", min: 0, max: 50 },
-    { label: "$50-100", min: 50, max: 100 },
-    { label: "$100-200", min: 100, max: 200 },
-    { label: "$200-300", min: 200, max: 300 },
-    { label: "$300-500", min: 300, max: 500 },
-    { label: "$500-700", min: 500, max: 700 },
+    { label: "$0–50", min: 0, max: 50 },
+    { label: "$50–100", min: 50, max: 100 },
+    { label: "$100–200", min: 100, max: 200 },
+    { label: "$200–300", min: 200, max: 300 },
+    { label: "$300–500", min: 300, max: 500 },
+    { label: "$500–700", min: 500, max: 700 },
     { label: "$700+", min: 700, max: Infinity },
   ];
 
@@ -38,25 +37,31 @@ export default function AmountChart({ data }: Props) {
   });
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4">
-      <h3 className="text-sm font-bold text-gray-900 mb-3">Amount Distribution</h3>
-      <ResponsiveContainer width="100%" height={220}>
+    <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm p-5">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-semibold text-slate-800">Amount Distribution</h3>
+        <span className="text-[10px] text-slate-400 font-medium">
+          Red = &gt;30% chargebacks
+        </span>
+      </div>
+      <ResponsiveContainer width="100%" height={210}>
         <BarChart data={chartData}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-          <YAxis tick={{ fontSize: 10 }} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+          <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={{ stroke: "#e2e8f0" }} tickLine={false} />
+          <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
           <Tooltip
             formatter={(value, _name, props) => {
               const cb = (props.payload as { chargebacks: number }).chargebacks;
               return [`${value} txns (${cb} chargebacks)`];
             }}
-            contentStyle={{ fontSize: 12 }}
+            contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #e2e8f0", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
           />
-          <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+          <Bar dataKey="count" radius={[6, 6, 0, 0]}>
             {chartData.map((entry, i) => (
               <Cell
                 key={i}
                 fill={entry.chargebacks > entry.count * 0.3 ? "#ef4444" : "#8b5cf6"}
+                fillOpacity={entry.chargebacks > entry.count * 0.3 ? 0.9 : 0.8}
               />
             ))}
           </Bar>
