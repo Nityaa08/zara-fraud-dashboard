@@ -155,7 +155,7 @@ export default function TransactionTable({ data, onSelect }: Props) {
                     </td>
                     <td className="px-3 py-2 text-gray-700">{txn.country}</td>
                     <td className="px-3 py-2 text-gray-700">
-                      {txn.paymentMethod.replace(/_/g, " ")}
+                      {txn.paymentMethod}
                     </td>
                     <td className="px-3 py-2">
                       <Badge value={txn.status} />

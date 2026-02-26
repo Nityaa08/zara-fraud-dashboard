@@ -97,7 +97,7 @@ export default function TransactionDetail({
           <Row label="Date & Time" value={formatDate(t.timestamp)} />
           <Row label="Country" value={t.country} />
           <Row label="IP Country" value={t.ipCountry} warn={ipMismatch} />
-          <Row label="Payment Method" value={t.paymentMethod.replace(/_/g, " ")} />
+          <Row label="Payment Method" value={t.paymentMethod} />
           <Row label="Card BIN" value={t.cardBIN} />
           <Row label="Card Last 4" value={t.cardLast4} />
           <Row label="Customer Email" value={t.customerEmail} />
