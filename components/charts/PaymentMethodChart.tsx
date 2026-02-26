@@ -25,35 +25,37 @@ export default function PaymentMethodChart({ data, onClickMethod }: Props) {
   const chartData = Object.entries(byMethod)
     .map(([name, txns]) => ({
       name,
-      raw: name,
       count: txns.length,
       chargebacks: txns.filter((t) => t.status === "chargeback").length,
     }))
     .sort((a, b) => b.count - a.count);
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4">
-      <h3 className="text-sm font-bold text-gray-900 mb-3">By Payment Method</h3>
-      <ResponsiveContainer width="100%" height={220}>
+    <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm p-5">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-semibold text-slate-800">Payment Methods</h3>
+        <span className="text-[10px] text-slate-400 font-medium">Click to filter</span>
+      </div>
+      <ResponsiveContainer width="100%" height={210}>
         <BarChart
           data={chartData}
           onClick={(e: Record<string, unknown>) => {
-            const payload = e?.activePayload as Array<{ payload: { raw: string } }> | undefined;
+            const payload = e?.activePayload as Array<{ payload: { name: string } }> | undefined;
             if (payload?.[0] && onClickMethod)
-              onClickMethod(payload[0].payload.raw);
+              onClickMethod(payload[0].payload.name);
           }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-          <YAxis tick={{ fontSize: 10 }} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+          <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={{ stroke: "#e2e8f0" }} tickLine={false} />
+          <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
           <Tooltip
             formatter={(value, _name, props) => {
               const cb = (props.payload as { chargebacks: number }).chargebacks;
               return [`${value} txns (${cb} chargebacks)`];
             }}
-            contentStyle={{ fontSize: 12 }}
+            contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #e2e8f0", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
           />
-          <Bar dataKey="count" radius={[4, 4, 0, 0]} style={{ cursor: "pointer" }}>
+          <Bar dataKey="count" radius={[6, 6, 0, 0]} style={{ cursor: "pointer" }}>
             {chartData.map((_, i) => (
               <Cell key={i} fill={COLORS[i % COLORS.length]} />
             ))}
