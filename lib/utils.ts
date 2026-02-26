@@ -90,7 +90,12 @@ export function exportToCSV(transactions: Transaction[], filename: string) {
     t.cardBIN, t.productCategory, t.ipCountry, t.merchantId,
     t.riskScore ?? "",
   ]);
-  const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+  const escapeCSV = (val: unknown) => {
+    const str = String(val ?? "");
+    return str.includes(",") || str.includes('"') || str.includes("\n")
+      ? `"${str.replace(/"/g, '""')}"` : str;
+  };
+  const csv = [headers.join(","), ...rows.map((r) => r.map(escapeCSV).join(","))].join("\n");
   const blob = new Blob([csv], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
